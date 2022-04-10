@@ -37,7 +37,7 @@ best_individuals = []
 best = None
 best_fit = None
 variable_clauses_mapping = dict()
-POP_SIZE = 50
+POP_SIZE = 5
 
 def fitness(x: List[int], clauses_no: int) -> int:
     clauses_true = set()
@@ -58,7 +58,7 @@ def q_gate(q: QbitIndividual, x: List[int], b: List[int], best_fit: int, clauses
     x_fit = fitness(x, clauses_no)
 
     new_q = QbitIndividual(q.l)
-    if not (x_fit >= best_fit):
+    if not (x_fit <= best_fit):
         for idx, (xi, bi) in enumerate(zip(x, b)):
             cos_theta = 1
             sin_theta = 0
