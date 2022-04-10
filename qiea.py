@@ -12,7 +12,7 @@ class Qbit:
         return iter((self.alpha, self.beta))
 
     def get_quadrant(self):
-        if len(np.unique(np.sign([self.alpha, self.beta]))) == 1:
+        if self.alpha * self.beta >= 0:
             return 1
         return 2
 
@@ -37,7 +37,7 @@ best_individuals = []
 best = None
 best_fit = None
 variable_clauses_mapping = dict()
-POP_SIZE = 5
+POP_SIZE = 1
 
 def fitness(x: List[int], clauses_no: int) -> int:
     clauses_true = set()
