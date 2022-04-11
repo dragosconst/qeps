@@ -37,7 +37,7 @@ best_individuals = []
 best = None
 best_fit = None
 variable_clauses_mapping = dict()
-POP_SIZE = 1
+POP_SIZE = 3
 MIG_PERIOD = 200
 
 def fitness(x: List[int], clauses_no: int) -> int:
@@ -58,7 +58,7 @@ def fitness(x: List[int], clauses_no: int) -> int:
 def q_gate(q: QbitIndividual, x: List[int], b: List[int], best_fit: int, clauses_no: int) -> QbitIndividual:
     x_fit = fitness(x, clauses_no)
 
-    new_q = QbitIndividual(q.l)
+    new_q = copy.deepcopy(q)
     if not (x_fit <= best_fit):
         for idx, (xi, bi) in enumerate(zip(x, b)):
             cos_theta = 1
@@ -82,7 +82,7 @@ def collapse_qbit_individuals(qpop: List[QbitIndividual], clauses_no: int) -> Li
     global best, best_fit
 
     pop = []
-    # collapse qbits for the first time
+    # collapse qbits
     for qind in qpop:
         pind = qind.get()
         pind_fit = fitness(pind, clauses_no)
@@ -121,6 +121,7 @@ def qiea(var_no: int, clauses_no: int, time_steps: int):
     qpop = [QbitIndividual(var_no) for i in range(POP_SIZE)]
     pop = collapse_qbit_individuals(qpop, clauses_no)
     best_individuals = copy.deepcopy(pop)
+    print(f"best pop is {best} and score is {best_fit}")
 
     for t in range(1, time_steps):
         # get population
