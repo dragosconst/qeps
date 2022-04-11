@@ -29,7 +29,7 @@ class QbitIndividual:
         for qbit in self.qbits:
             ai = qbit.alpha ** 2
             bi = qbit.beta ** 2
-            pi = np.random.choice([0,1], p=(ai, bi), size=1)
+            pi = np.random.choice([0,1], p=(ai, bi))
             p.append(pi)
         return p
 
@@ -38,6 +38,7 @@ best = None
 best_fit = None
 variable_clauses_mapping = dict()
 POP_SIZE = 1
+MIG_PERIOD = 200
 
 def fitness(x: List[int], clauses_no: int) -> int:
     clauses_true = set()
@@ -91,6 +92,29 @@ def collapse_qbit_individuals(qpop: List[QbitIndividual], clauses_no: int) -> Li
         pop.append(pind)
     return pop
 
+def migrate(var_no: int, clauses_no: int):
+    global best, best_fit, best_individuals
+
+    coin_flip = np.random.rand(1)
+    # global migration
+    if coin_flip >= 0.5:
+        for idi in range(len(best_individuals)):
+            best_individuals[idi] = best
+    # local migration
+    else:
+        best_local = None
+        best_local_fit = None
+        # find best individual in population
+        for ind in best_individuals:
+            if best_local_fit is None or fitness(ind, clauses_no) > best_local_fit:
+                best_local = ind
+                best_local_fit = fitness(ind, clauses_no)
+        # replace some variables with the best one
+        replace_num = np.random.randint(low=1, high=POP_SIZE + 1)
+        replace_idx = np.random.choice([i for i in range(POP_SIZE)], size=replace_num, replace=False)
+        for idr in replace_idx:
+            best_individuals[idr] = best_local
+
 def qiea(var_no: int, clauses_no: int, time_steps: int):
     global best, best_fit, best_individuals, POP_SIZE
 
@@ -99,6 +123,7 @@ def qiea(var_no: int, clauses_no: int, time_steps: int):
     best_individuals = copy.deepcopy(pop)
 
     for t in range(1, time_steps):
+        # get population
         pop = collapse_qbit_individuals(qpop, clauses_no)
         # update qbit individuals
         for idx, (qind, pind) in enumerate(zip(qpop, pop)):
@@ -111,6 +136,10 @@ def qiea(var_no: int, clauses_no: int, time_steps: int):
 
             if pind_fitness < bind_fitness:
                 best_individuals[idx] = pind
+        # do migrations
+        if idx % MIG_PERIOD == 0:
+            migrate(var_no, clauses_no)
+
         # check terminating condition
         if t % 1000 == 0:
             print(f"best pop is {best} and score is {best_fit}")
